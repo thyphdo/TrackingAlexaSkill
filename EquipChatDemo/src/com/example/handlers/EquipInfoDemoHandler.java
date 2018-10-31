@@ -43,7 +43,7 @@ public class EquipInfoDemoHandler implements RequestHandler {
 			String equipName = equipNameSlot.getValue();
 
 			//If the equipment exists (long board) 
-			if (equipName.equals("long board")){
+			if (equipName.contains("board")){
 				//Test
 				String CMH = "20";
 				String jobSite = "Gettysburg";
@@ -51,7 +51,7 @@ public class EquipInfoDemoHandler implements RequestHandler {
 				input.getAttributesManager().setSessionAttributes(Collections.singletonMap(EQUIP_NAME,equipName));
 
 				speechText =
-						"Machine " + equipName + "has been running for " + CMH + " hours at job site " + jobSite;
+						"Machine " + equipName + " has been running for " + CMH + " hours at job site " + jobSite;
 				repromptText =
 						"You can ask me again by kindly saying, " + "tell me about the machine's information";
 			}
