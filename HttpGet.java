@@ -46,10 +46,10 @@ public class HttpGet {
 
 			int count = 0;
 			for(String s : info) {
-//				System.out.println(count + "    " + s);
+				System.out.println(count + "    " + s);
 				count++;
 			}
-			
+
 			numEquip = count / 26;
 
 			int counter = 0;
@@ -66,7 +66,9 @@ public class HttpGet {
 			long timeAfter = System.currentTimeMillis();
 
 			long totalTime = (timeAfter - timeStart)/1000;
+			System.out.println();
 			System.out.println("it took: " + totalTime + " seconds");
+			System.out.println();
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -169,21 +171,25 @@ public class HttpGet {
 
 		return allInfo;
 	}
-	
+
+	/**
+	 * This method gets the info of the designated transaction
+	 * @return -> result[0] = tType result[1] = pdaUsername result[2] = jobsite
+	 */ 
 	public static String[] basicTransactionInfo() {
 		String[] allInfo = new String[3];
 		//tType + 9
 		//pdaUsername + 11
 		//jobsite + 16
-		
+
 		String tType = info[equipIndex+9].split(":")[1].split("\"")[1];
 		String pdaUsername = info[equipIndex+11].split(":")[1];
 		String jobsite = info[equipIndex+16].split(":")[1].split("}")[0];
-		
+
 		if( pdaUsername.equals("null")) {
 			pdaUsername = "No PDAUsername assigned";
 		}
-		
+
 		if( jobsite.equals("null")) {
 			jobsite = "No jobsite assigned";
 		}
@@ -195,18 +201,9 @@ public class HttpGet {
 		allInfo[0] = tType;
 		allInfo[1] = pdaUsername;
 		allInfo[2] = jobsite;
-		
+
 		return allInfo;
 	}
-
-	/*
-	 * Write a method that take the date as year/month/day 
-	 * switch to month/day/year
-	 */
-
-	/*
-	 * number of transactions in a given period
-	 */
 
 	public static String dateChange(String date) {
 		String[] dateNums = date.split("-");
@@ -216,35 +213,35 @@ public class HttpGet {
 
 	public static void main(String[] args) {
 		run("bulldozer");
-//				System.out.println("Equip status: "+equipStatus());
-//				System.out.println("Equip CMH: "+equipCMH());
-//				System.out.println("Last transaction date: "+lastTransaction());
-//				System.out.println("Last transaction number: "+transactionInfo());
-//				equipInfo();
-		basicTransactionInfo();
-		
-				System.out.println();
-				run("digger");
-//				System.out.println("Equip status: "+equipStatus());
-//				System.out.println("Equip CMH: "+equipCMH());
-//				System.out.println("Last transaction date: "+lastTransaction());
-//				System.out.println("Last transaction number: "+transactionInfo());
-//				equipInfo();
-		basicTransactionInfo();
-		
-				System.out.println();
-				run("longboard");
-//				System.out.println("Equip status: "+equipStatus());
-//				System.out.println("Equip CMH: "+equipCMH());
-//				System.out.println("Last transaction date: "+lastTransaction());
-//				System.out.println("Last transaction number: "+transactionInfo());
-//				equipInfo();
-				basicTransactionInfo();
-		
-				System.out.println();
-		
-//				System.out.println(dateChange("2018-10-30"));
-//				System.out.println(dateChange("1997-7-20"));
+		//				System.out.println("Equip status: "+equipStatus());
+		//				System.out.println("Equip CMH: "+equipCMH());
+		//				System.out.println("Last transaction date: "+lastTransaction());
+		//				System.out.println("Last transaction number: "+transactionInfo());
+		//				equipInfo();
+		//basicTransactionInfo();
+
+//		System.out.println();
+//		run("digger");
+		//				System.out.println("Equip status: "+equipStatus());
+		//				System.out.println("Equip CMH: "+equipCMH());
+		//				System.out.println("Last transaction date: "+lastTransaction());
+		//				System.out.println("Last transaction number: "+transactionInfo());
+		//				equipInfo();
+		//basicTransactionInfo();
+
+//		System.out.println();
+//		run("longboard");
+		//				System.out.println("Equip status: "+equipStatus());
+		//				System.out.println("Equip CMH: "+equipCMH());
+		//				System.out.println("Last transaction date: "+lastTransaction());
+		//				System.out.println("Last transaction number: "+transactionInfo());
+		//				equipInfo();
+		//basicTransactionInfo();
+
+//		System.out.println();
+
+		//				System.out.println(dateChange("2018-10-30"));
+		//				System.out.println(dateChange("1997-7-20"));
 
 		//System.out.println(equipTotal());
 	}
