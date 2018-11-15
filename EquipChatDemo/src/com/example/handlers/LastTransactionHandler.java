@@ -17,6 +17,9 @@ import com.amazon.ask.response.ResponseBuilder;
 public class LastTransactionHandler implements RequestHandler{
 
 	public static final String EQUIP_NAME = "equipName";
+	public static final int TRANSACTION_TYPE = 0;
+	public static final int USER = 1;
+	public static final int JOBSITE = 2;
 
 	//LastTransactionIntent
 	//Slot types: 
@@ -40,7 +43,7 @@ public class LastTransactionHandler implements RequestHandler{
 		Slot equipName = slots.get(EQUIP_NAME);
 
 		//Check for validity of inputs 
-		boolean isValidInput = equipName == null;
+		boolean isValidInput = equipName != null;
 
 		//Set up response
 		String speechText = "Empty";
@@ -52,14 +55,24 @@ public class LastTransactionHandler implements RequestHandler{
 			//Stringify all the slot 
 			String name = equipName.getValue();
 
-			//****// CALL API //****// 
-			String type = "repair";
-			String user = "Sophie";
-			String jobSite = "Mechanicsburg";
-
+			//****// CALL API //****// 	
+			LatestTransaction apicall = new LatestTransaction();
+			apicall.run("Bulldozer");
+			String[] result = apicall.basicTransactionInfo();
+			
+			String type = result[TRANSACTION_TYPE];
+			String user = result[USER];
+			String jobSite = result[JOBSITE];
+			
 			//IF API RETURN POSITIVE MESSAGE 
-			if (type == "repair"){
-				speechText = "Transaction type is " + type + ", operated by " + user + " at "+ jobSite;
+			if (type != null && user != null && jobSite != null){
+				speechText = "Transaction type is " + type + " at jobsite " + jobSite;
+				//if there is no user available 
+				if (user.contains("No"))
+					speechText += " with no available username assigned";
+				else {
+					speechText += " operated by " + user;
+				}
 			}
 			//IF API RETURN AN ERROR
 			else {
