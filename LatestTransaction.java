@@ -26,8 +26,8 @@ public class LatestTransaction {
 	 * Calls the HTTP GET with basic auth and sets "equipLine" which is the string
 	 * that holds all data from the GET
 	 */
-	public static void run(String equip, String date1, String date2) {
-		String path = "https://service.equipchat.com/EquipchatTransactionService.svc//Transactions/" + date1 + "%2012:00:00%20AM/" + date2 + "%2011:59:59%20PM";
+	public static void run(String equip) {
+		String path = "https://service.equipchat.com/EquipchatTransactionService.svc//Transactions/10-28-2018%2012:00:00%20AM/11-04-2018%2011:59:59%20PM";
 		String line = "";
 		ArrayList<String> allLines = new ArrayList<String>();
 		try {
@@ -121,7 +121,7 @@ public class LatestTransaction {
 	}
 
 	public static void main(String[] args) {
-		run("bulldozer", "10-28-2018", "11-04-2018");
+		run("bulldozer");
 		basicTransactionInfo();
 	}
 }
