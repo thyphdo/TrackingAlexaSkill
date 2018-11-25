@@ -10,8 +10,8 @@ import com.example.handlers.HelpIntentHandler;
 import com.example.handlers.LastTransactionHandler;
 import com.example.handlers.LaunchRequestHandler;
 import com.example.handlers.SessionEndedRequestHandler;
-import com.example.handlers.TransactionInfoHandler;
-import com.example.handlers.TransactionsTotalHandler;
+import com.example.handlers.FuelTransactionInfoHandler;
+import com.example.handlers.FuelTransactionsTotalHandler;
 
 public class EquipChatStreamHandler extends SkillStreamHandler {
 
@@ -19,7 +19,7 @@ public class EquipChatStreamHandler extends SkillStreamHandler {
 		return Skills.standard()
 				.addRequestHandlers(new EquipInfoDemoHandler(),new HelpIntentHandler(),new LaunchRequestHandler(),
 						new SessionEndedRequestHandler(), new CancelandStopIntentHandler(),
-						new EquipHourHandler(),new TransactionsTotalHandler(), new TransactionInfoHandler(),
+						new EquipHourHandler(),new FuelTransactionsTotalHandler(), new FuelTransactionInfoHandler(),
 						new LastTransactionHandler())
 				.withSkillId("amzn1.ask.skill.fdba1d4c-26a1-47ca-897c-9190a7c76f8c")
 				.build();
