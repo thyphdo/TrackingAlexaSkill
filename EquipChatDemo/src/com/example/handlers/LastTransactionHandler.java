@@ -13,7 +13,7 @@ import com.amazon.ask.model.Request;
 import com.amazon.ask.model.Response;
 import com.amazon.ask.model.Slot;
 import com.amazon.ask.response.ResponseBuilder;
-
+//***** Done integrate, need formatting *****//
 public class LastTransactionHandler implements RequestHandler{
 
 	public static final String EQUIP_NAME = "equipName";
