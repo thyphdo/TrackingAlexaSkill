@@ -15,7 +15,7 @@ import com.amazon.ask.response.ResponseBuilder;
 import static com.amazon.ask.request.Predicates.intentName;
 
 //Source: https://github.com/alexa/alexa-skills-kit-sdk-for-java
-public class EquipInfoDemoHandler implements RequestHandler {
+public class EquipCMHDemoHandler implements RequestHandler {
 
 	public static void main(String[] args) {
 //		HttpGet info = new HttpGet();
@@ -35,7 +35,7 @@ public class EquipInfoDemoHandler implements RequestHandler {
 	public static final String EQUIP_NAME = "equipName";
 
 	public boolean canHandle(HandlerInput input) {
-		return input.matches(intentName("EquipInfoDemoHandler"));
+		return input.matches(intentName("EquipCMHDemoHandler"));
 	}
 
 	public Optional<Response> handle(HandlerInput input) {
@@ -58,18 +58,11 @@ public class EquipInfoDemoHandler implements RequestHandler {
 			HttpGet info = new HttpGet();
 			info.run(equipName);
 
-			//If the equipment exists (long board) 
+			//If the equipment exists 
 			if (info.equipExists()){
 				String CMH = info.equipCMH();
-				String jobSite = info.getJobSite();
-				if(jobSite.contains("Not on Jobsite")) {
-					speechText =
-							"Machine " + equipName + " has been running for " + CMH + " hours and is currently not on a job site";
-				}
-				else {
-					speechText =
-							"Machine " + equipName + " has been running for " + CMH + " hours at job site " + jobSite;
-				}
+				speechText =
+						"Machine " + equipName + " has been running for " + CMH + " hours";
 
 				input.getAttributesManager().setSessionAttributes(Collections.singletonMap(EQUIP_NAME,(Object) equipName));
 
@@ -82,8 +75,8 @@ public class EquipInfoDemoHandler implements RequestHandler {
 				repromptText =
 						"You can ask me again by kindly saying, " + "tell me about the machine's information";
 			}
-
-		} else {
+		} 
+		else {
 			// Render an error since we don't know what the equipment's name is.
 			speechText = 
 					"I'm not sure what the equipment's name is, please try again";
@@ -104,7 +97,6 @@ public class EquipInfoDemoHandler implements RequestHandler {
 			responseBuilder.withShouldEndSession(false)
 			.withReprompt(repromptText);
 		}
-
 		return responseBuilder.build();
 	}
 }
