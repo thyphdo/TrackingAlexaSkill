@@ -1,3 +1,4 @@
+package com.example.handlers;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -24,6 +25,9 @@ public class NumOnJobsite {
 		public NumOnJobsite() {
 			equipLine = "";
 			equipIndex = -1;
+			numOnSite = 0;
+			numEquip = 0;
+			stringOnSite = "";
 		}	
 	
 	public static void run(String jobsite) {
@@ -96,6 +100,15 @@ public class NumOnJobsite {
 	
 	public static String numOnSite() {
 		return stringOnSite;
+	}
+	
+	public static boolean jobsiteExists() {
+		if(equipIndex == -1) {
+			return false;
+		}
+		else {
+			return true;
+		}
 	}
 	
 	public static void main(String[] args) {
