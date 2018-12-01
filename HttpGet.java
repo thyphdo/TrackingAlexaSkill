@@ -1,3 +1,5 @@
+package com.example.handlers;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -9,23 +11,30 @@ import org.apache.commons.codec.binary.Base64;
 
 public class HttpGet {
 	//A String that will be altered and cut to find the desired information
-	public static String equipLine = "";
+	public static String equipLine;
 
 	//an int that will count the total number of equipment that belongs to that company
-	public static int numEquip = 0;
+	public static int numEquip;
 
 	public static String[] info;
 	public static int equipIndex;
 
+	public HttpGet(){
+		equipIndex = -1;
+		equipLine = "";
+	}
+	
+	
+	
 	/*
 	 * Calls the HTTP GET with basic auth and sets "equipLine" which is the string
 	 * that holds all data from the GET
 	 */
 	public static void run(String equip) {
-		//String path = "https://service.equipchat.com/EquipchatTransactionService.svc/GetEquipment"; //works 
+		String path = "https://service.equipchat.com/EquipchatTransactionService.svc/GetEquipment"; //works 
 		//String path = "https://service.equipchat.com/EquipchatTransactionService.svc/GetHours/10-28-2018/11-04-2018"; //works but takes a very long time
 		//String path = "https://service.equipchat.com/EquipchatTransactionService.svc/FuelTransactions/100000000"; // works
-		String path = "https://service.equipchat.com/EquipchatTransactionService.svc//Transactions/10-28-2018%2012:00:00%20AM/11-04-2018%2011:59:59%20PM";
+		//String path = "https://service.equipchat.com/EquipchatTransactionService.svc//Transactions/10-28-2018%2012:00:00%20AM/11-04-2018%2011:59:59%20PM";
 		String line = "";
 		ArrayList<String> allLines = new ArrayList<String>();
 		try {
@@ -115,6 +124,7 @@ public class HttpGet {
 	 * @return --> The CMH represented as a String
 	 */
 	public static String equipCMH(){
+		// he had -7
 		String cmh = info[equipIndex-7].split(":")[1];
 		if(!cmh.equals(null)) {
 			return cmh;
@@ -171,6 +181,12 @@ public class HttpGet {
 
 		return allInfo;
 	}
+	
+	// This gets jobsite
+	public static String getJobSite() {
+		// he had +3
+		return info[equipIndex+3].split(":")[1].split("\"")[1];
+	}
 
 	/**
 	 * This method gets the info of the designated transaction
@@ -210,6 +226,15 @@ public class HttpGet {
 
 		return dateNums[1] + "-" + dateNums[2] + "-" + dateNums[0];
 	}
+	
+	public static boolean equipExists() {
+		if(equipIndex == -1) {
+			return false;
+		}
+		else {
+			return true;
+		}
+	}
 
 	public static void main(String[] args) {
 		run("bulldozer");
@@ -221,7 +246,7 @@ public class HttpGet {
 		//basicTransactionInfo();
 
 //		System.out.println();
-//		run("digger");
+		run("digger");
 		//				System.out.println("Equip status: "+equipStatus());
 		//				System.out.println("Equip CMH: "+equipCMH());
 		//				System.out.println("Last transaction date: "+lastTransaction());
@@ -230,7 +255,7 @@ public class HttpGet {
 		//basicTransactionInfo();
 
 //		System.out.println();
-//		run("longboard");
+		run("longboard");
 		//				System.out.println("Equip status: "+equipStatus());
 		//				System.out.println("Equip CMH: "+equipCMH());
 		//				System.out.println("Last transaction date: "+lastTransaction());
