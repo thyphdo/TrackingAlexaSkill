@@ -35,7 +35,7 @@ public class EquipInfoDemoHandler implements RequestHandler {
 	public static final String EQUIP_NAME = "equipName";
 
 	public boolean canHandle(HandlerInput input) {
-		return input.matches(intentName("EquipInfoDemoHandler"));
+		return input.matches(intentName("EquipInfoIntent"));
 	}
 
 	public Optional<Response> handle(HandlerInput input) {
@@ -57,7 +57,7 @@ public class EquipInfoDemoHandler implements RequestHandler {
 			String equipName = equipNameSlot.getValue().toLowerCase();
 			HttpGet info = new HttpGet();
 			info.run(equipName);
-
+			
 			//If the equipment exists (long board) 
 			if (info.equipExists()){
 				String CMH = info.equipCMH();
@@ -80,7 +80,7 @@ public class EquipInfoDemoHandler implements RequestHandler {
 				speechText =
 						"Machine " + equipName + " is not valid, please try again";
 				repromptText =
-						"You can ask me again by kindly saying, " + "tell me about the machine's information";
+						"You can ask me again by kindly saying, " + "tell me about the information of equipment name";
 			}
 
 		} else {

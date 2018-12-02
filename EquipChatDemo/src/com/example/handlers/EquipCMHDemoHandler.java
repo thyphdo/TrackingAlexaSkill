@@ -35,7 +35,7 @@ public class EquipCMHDemoHandler implements RequestHandler {
 	public static final String EQUIP_NAME = "equipName";
 
 	public boolean canHandle(HandlerInput input) {
-		return input.matches(intentName("EquipCMHDemoHandler"));
+		return input.matches(intentName("EquipCMHIntent"));
 	}
 
 	public Optional<Response> handle(HandlerInput input) {

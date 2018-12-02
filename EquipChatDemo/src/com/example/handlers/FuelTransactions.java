@@ -26,13 +26,9 @@ public class FuelTransactions {
 	}
 
 	//***When User Provide only ID
-	public void run(String transID) {
-		//String path = "https://service.equipchat.com/EquipchatTransactionService.svc/GetEquipment"; //works 
-		//String path = "https://service.equipchat.com/EquipchatTransactionService.svc/GetHours/10-28-2018/11-04-2018"; //works but takes a very long time
+	public void run(String transID) {	
 		String path = "https://service.equipchat.com/EquipchatTransactionService.svc/FuelTransactions/100000000"; // works
-		//String path = "https://service.equipchat.com/EquipchatTransactionService.svc//FuelTransactions/10-30-2018%2012:00:00%20AM/10-31-2018%2011:59:00%20PM"; // doesn't work
-		//String path = "https://service.equipchat.com/EquipchatTransactionService.svc//Transactions/10-28-2018%2012:00:00%20AM/11-04-2018%2011:59:59%20PM";
-
+		
 		String line = "";
 		ArrayList<String> allLines = new ArrayList<String>();
 		try {
@@ -151,19 +147,25 @@ public class FuelTransactions {
 	//***Call this when user input only transactionID
 	//Return array of 3 info: type,volume,oum
 	public String[] fuelInfo() {
-		String[] allInfo = new String[3];
+		String[] allInfo = new String[5];
 
+		String name = info[equipIndex-6].split(":")[1].split("\"")[1];
 		String type = info[equipIndex+7].split(":")[1].split("\"")[1];
 		String volume = info[equipIndex+5].split(":")[1].split("\"")[0];
 		String oum = info[equipIndex+6].split(":")[1].split("\"")[1];
+		String site = info[equipIndex+9].split(":")[1].split("\"")[1];
 
+		System.out.println("name is " + name);
 		System.out.println("type is " + type);
 		System.out.println("volume is " + volume);
 		System.out.println("oum is " + oum);
+		System.out.println("jobsite is " + site);
 
-		allInfo[0] = type;
-		allInfo[1] = volume;
-		allInfo[2] = oum;
+		allInfo[0] = name;
+		allInfo[1] = type;
+		allInfo[2] = volume;
+		allInfo[3] = oum;
+		allInfo[4] = site;
 
 		return allInfo;	
 	}
@@ -190,12 +192,44 @@ public class FuelTransactions {
 		}
 	}
 
-	public static void main(String[] args) {
-		FuelTransactions apicall = new FuelTransactions();
-		//apicall.run("148873852");
-		apicall.run("10-30-2018","10-31-2018");
-		String[] r = apicall.listOfFuelInfo();
-		//System.out.println(r.length);
-		System.out.println(r[0] + "\n" + r[1] + "\n" + r[2]);
-	}
+//	public static void main(String[] args) {
+//		FuelTransactions apicall = new FuelTransactions();
+//		apicall.run("11-01-2018","11-20-2018");
+//		apicall.run("2018-11-01","2018-11-20");
+//
+//		String[] r = apicall.listOfFuelInfo();
+//		//System.out.println(r.length);
+//		
+//		String numTransaction = r.length + "";
+//		String speechText = "There are " + numTransaction + "transactions within the provided period. ";
+//		for (String trans : r) {
+//			String[] transInfo = trans.split("\\s+"); //0: name, 1: transaction type, 2: volume, 3: uom, 4: jobsite
+//			speechText += "Equipment " + transInfo[0] + " has a transaction of " + transInfo[1] + " with " + transInfo[2] 
+//					+ " " + transInfo[3]  + " at job site " + transInfo[4] + ". ";
+//		}
+//		System.out.println(speechText);
+//
+//		apicall.run("149503934");
+//		String[] results = apicall.fuelInfo();
+//		String speechText = "";
+//		//IF API RETURN AN ERROR
+//		if (results.length == 0) {
+//			speechText = 
+//					"There's an error from request to the API with ID: 149503934 or there is no"
+//							+ "transaction under this ID. please try again";
+//		}
+//		else {
+//			String name = results[0];
+//			String type = results[1];
+//			String volume = results[2];
+//			String uom = results[3];
+//			String jobsite = results[4];
+//
+//			//IF API RETURN POSITIVE MESSAGE 	
+//			speechText = "This transaction belongs to equipment " + name + " .Fuel type is " + type + " with a volume of " + volume + " " + uom + " at jobsite " +jobsite;
+//		}
+//		System.out.println(speechText);
+//
+//		
+//	}
 }

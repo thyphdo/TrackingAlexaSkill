@@ -17,9 +17,11 @@ import com.amazon.ask.response.ResponseBuilder;
 public class LastTransactionHandler implements RequestHandler{
 
 	public static final String EQUIP_NAME = "equipName";
-	public static final int TRANSACTION_TYPE = 0;
-	public static final int USER = 1;
-	public static final int JOBSITE = 2;
+	
+	public static final int TRANSACTION_TIME = 0;
+	public static final int TRANSACTION_TYPE = 1;
+	public static final int USER = 2;
+	public static final int JOBSITE = 3;
 
 	//LastTransactionIntent
 	//Slot types: 
@@ -43,7 +45,7 @@ public class LastTransactionHandler implements RequestHandler{
 		Slot equipName = slots.get(EQUIP_NAME);
 
 		//Check for validity of inputs 
-		boolean isValidInput = equipName != null;
+		boolean isValidInput = equipName.getValue() != null;
 
 		//Set up response
 		String speechText = "Empty";
@@ -53,20 +55,23 @@ public class LastTransactionHandler implements RequestHandler{
 
 		if (isValidInput) {
 			//Stringify all the slot 
-			String name = equipName.getValue();
+			String name = equipName.getValue().toLowerCase();
 
 			//****// CALL API //****// 	
 			LatestTransaction apicall = new LatestTransaction();
-			apicall.run("Bulldozer");
+			apicall.run(name);
 			String[] result = apicall.basicTransactionInfo();
 			
-			String type = result[TRANSACTION_TYPE];
-			String user = result[USER];
-			String jobSite = result[JOBSITE];
-			
 			//IF API RETURN POSITIVE MESSAGE 
-			if (type != null && user != null && jobSite != null){
-				speechText = "Transaction type is " + type + " at jobsite " + jobSite;
+			if (result.length != 0){
+				//0: date  1: time  2: transactionType   3: pdaUsername  4: jobSite
+				String date = result[0];
+				String time = result[1];
+				String type = result[2];
+				String user = result[3];
+				String jobSite = result[4];
+				
+				speechText = name + " last transaction is " + type + " at jobsite " + jobSite + " on " + date + " at " + time;
 				//if there is no user available 
 				if (user.contains("No"))
 					speechText += " with no available username assigned";
@@ -77,8 +82,7 @@ public class LastTransactionHandler implements RequestHandler{
 			//IF API RETURN AN ERROR
 			else {
 				speechText = 
-						"There's an error from request to the API with equipment " 
-								+ name + ". please try again";
+						"There's an error from request to the API with equipment or the equipment does not exist. please try again";
 			}
 		}//IF INPUTS HAVE ERROR
 		else {

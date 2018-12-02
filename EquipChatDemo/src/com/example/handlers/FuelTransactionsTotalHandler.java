@@ -6,6 +6,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
 
@@ -50,7 +51,7 @@ public class FuelTransactionsTotalHandler implements RequestHandler {
 		Slot endTimeSlot = slots.get(END_TIME);
 
 		//Check for validity of inputs, time processor return exactly two date 
-		boolean isValidInput = (startTimeSlot != null);  //only startTime and equipName are mandatory
+		boolean isValidInput = (startTimeSlot.getValue() != null);  //only startTime and equipName are mandatory
 
 		//Set up response
 		String speechText = "Empty";
@@ -61,7 +62,7 @@ public class FuelTransactionsTotalHandler implements RequestHandler {
 			//Stringify all the slot 
 			//String equipName = equipNameSlot.getValue();
 			String startTime = startTimeSlot.getValue();
-			String endTime = endTimeSlot == null ? null : endTimeSlot.getValue();
+			String endTime = endTimeSlot.getValue(); //== null ? null : endTimeSlot.getValue();
 
 			//***Pre Process Dates****
 			String[] start_end = dateHandler(startTime,endTime);

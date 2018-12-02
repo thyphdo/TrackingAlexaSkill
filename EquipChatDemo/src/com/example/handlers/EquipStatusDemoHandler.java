@@ -20,7 +20,7 @@ public class EquipStatusDemoHandler implements RequestHandler {
 	public static final String EQUIP_NAME = "equipName";
 
 	public boolean canHandle(HandlerInput input) {
-		return input.matches(intentName("EquipStatusDemoHandler"));
+		return input.matches(intentName("EquipStatusIntent"));
 	}
 
 	public Optional<Response> handle(HandlerInput input) {
@@ -43,6 +43,7 @@ public class EquipStatusDemoHandler implements RequestHandler {
 			HttpGet info = new HttpGet();
 			info.run(equipName);
 			
+			boolean flag = true;
 			//If the equipment exists
 			if (info.equipExists()){
 				input.getAttributesManager().setSessionAttributes(Collections.singletonMap(EQUIP_NAME,(Object) equipName));

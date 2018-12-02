@@ -1,5 +1,4 @@
 package com.example.handlers;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -9,27 +8,30 @@ import java.util.ArrayList;
 
 import org.apache.commons.codec.binary.Base64;
 
-public class EquipHour {
-
-	public String equipLine;
-
-	//an int that will count the total number of equipment that belongs to that company
-	public int numEquip = 0;
-
-	public String[] info;
-	public int equipIndex;
+public class NumOnJobsite {
 	
-	public String firstCMH, lastCMH;
+	//A String that will be altered and cut to find the desired information
+		public static String equipLine;
 
-	public EquipHour() {
-		equipLine = "";
-		equipIndex = -1;
-		firstCMH = null;
-		lastCMH = null;
-	}	
+		//an int that will count the total number of equipment that belongs to that company
+		public static int numEquip = 0;
+		public static int numOnSite = 0;
+		
+		public static String stringOnSite = "";
 
-	public void run(String equip, String date1, String date2) {
-		String path = "https://service.equipchat.com/EquipchatTransactionService.svc/GetHours/" + date1 + "/" + date2; //works but takes a very long time
+		public static String[] info;
+		public static int equipIndex;
+
+		public NumOnJobsite() {
+			equipLine = "";
+			equipIndex = -1;
+			numOnSite = 0;
+			numEquip = 0;
+			stringOnSite = "";
+		}	
+	
+	public static void run(String jobsite) {
+		String path = "https://service.equipchat.com/EquipchatTransactionService.svc/GetEquipment";
 		String line = "";
 		ArrayList<String> allLines = new ArrayList<String>();
 		try {
@@ -43,7 +45,6 @@ public class EquipHour {
 				//System.out.println(line);
 			}
 			reader.close();
-
 			info = equipLine.split(",");
 
 			int count = 0;
@@ -56,27 +57,17 @@ public class EquipHour {
 
 			int counter = 0;
 			for(String s : info) {
-				if( s.contains(equip)){
+				if( s.contains(jobsite)){
 					equipIndex = counter;
-					System.out.println();
-					firstCMH = info[equipIndex+9].split(":")[1].split("\"")[0];
-					System.out.println(firstCMH);
-					break;
+					numOnSite++;
 				}			
 				counter++;
 			}
 			
-			for(int i = info.length-1; i > 0; i--) {
-				String s = info[i];
-				
-				if( s.contains(equip)){
-					equipIndex = i;
-					System.out.println();
-					lastCMH = info[equipIndex+8].split(":")[1].split("\"")[0];
-					System.out.println(lastCMH);
-					break;
-				}			
-			}
+			stringOnSite = "" + numOnSite;
+			
+			System.out.println();
+			//System.out.println("The number of equipment on this jobsite is: " + numOnSite);
 
 			//if counter is 0, equipment is not there. handle this
 
@@ -97,7 +88,7 @@ public class EquipHour {
 	 */
 
 	//Basic authentication set up
-	private URLConnection setUsernamePassword(URL url) throws IOException {
+	private static URLConnection setUsernamePassword(URL url) throws IOException {
 		String username = "rtosten";
 		String password = "BTedu18";
 		URLConnection urlConnection = url.openConnection();
@@ -107,26 +98,23 @@ public class EquipHour {
 		return urlConnection;
 	}
 	
-	public int cmhChange() {
-		
-		if (firstCMH == null || lastCMH == null) {
-			return -1;
-		}
-		int firstIntCmh = Integer.parseInt(firstCMH);
-		int lastIntCmh = Integer.parseInt(lastCMH);
-		
-		int result = (lastIntCmh == firstIntCmh  ? 0 : lastIntCmh - firstIntCmh );
-				
-		return result;
+	public static String numOnSite() {
+		return stringOnSite;
 	}
-
+	
+	public static boolean jobsiteExists() {
+		if(equipIndex == -1) {
+			return false;
+		}
+		else {
+			return true;
+		}
+	}
+	
 	public static void main(String[] args) {
-//		run("Bulldozer", "10-28-2018", "11-04-2018");
-//		System.out.println(cmhChange());
-//		
-		EquipHour apicall = new EquipHour();
-
-		apicall.run("bulldozer", "12-01-2018", "12-02-2018");
-		System.out.println(apicall.cmhChange());
+		//run("gettysburg");
+		
+		run("dickinson");
+		System.out.println(numOnSite());
 	}
 }

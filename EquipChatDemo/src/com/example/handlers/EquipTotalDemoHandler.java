@@ -20,7 +20,7 @@ public class EquipTotalDemoHandler implements RequestHandler {
 	public static final String JOBSITE_NAME = "jobSiteName";
 
 	public boolean canHandle(HandlerInput input) {
-		return input.matches(intentName("EquipTotalDemoHandler"));
+		return input.matches(intentName("EquipTotalIntent"));
 	}
 
 	public Optional<Response> handle(HandlerInput input) {
@@ -42,7 +42,7 @@ public class EquipTotalDemoHandler implements RequestHandler {
 			String jobSiteName = jobSiteSlot.getValue().toLowerCase();
 			NumOnJobsite info = new NumOnJobsite();
 			info.run(jobSiteName);
-
+			
 			//If the equipment exists (long board) 
 			if (info.jobsiteExists()){
 				//Test

@@ -6,17 +6,31 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 import com.amazon.ask.dispatcher.request.handler.HandlerInput;
 import com.amazon.ask.dispatcher.request.handler.RequestHandler;
+import com.amazon.ask.model.DialogState;
 import com.amazon.ask.model.Intent;
 import com.amazon.ask.model.IntentRequest;
 import com.amazon.ask.model.Request;
 import com.amazon.ask.model.Response;
 import com.amazon.ask.model.Slot;
+import com.amazon.ask.model.SlotConfirmationStatus;
+import com.amazon.ask.model.Directive;
+import com.amazon.ask.model.dialog.DelegateDirective;
+import com.amazon.ask.model.dialog.DelegateDirective.Builder;
+import com.amazon.ask.model.dialog.ElicitSlotDirective;
 import com.amazon.ask.response.ResponseBuilder;
+
+//import com.amazon.speech.speechlet.Directive;
+//import com.amazon.speech.speechlet.SpeechletResponse;
+//import com.amazon.speech.speechlet.dialog.directives.DelegateDirective;
+//import com.amazon.speech.speechlet.dialog.directives.DialogIntent;
+//import com.amazon.speech.speechlet.dialog.directives.DialogSlot;
+
 
 //***** Done dealing with dates, yet with equipName*****//
 
@@ -34,17 +48,187 @@ public class EquipHourHandler implements RequestHandler {
 	public boolean canHandle(HandlerInput input) {
 		return input.matches(intentName("EquipHourIntent"));
 	}
+	//	public static void main(String[] arg) {
+	//		
+	//		
+	//		//***Create new slots***
+	//		Slot.Builder startSlotBuilder = Slot.builder().withName(START_TIME).withValue("11-01-2018");
+	//		Slot startTimeSlot = startSlotBuilder.build();
+	//		
+	//		Slot.Builder endSlotBuilder = Slot.builder().withName(END_TIME).withValue("11-20-2018");
+	//		Slot endTimeSlot = endSlotBuilder.build();
+	//		
+	//		Map<String,Slot> updateSlots = new HashMap<String,Slot>();  slots.put(START_TIME, startTimeSlot); slots.put(END_TIME, endTimeSlot);
+	//		
+	//		//***Create new intents***
+	//		Intent.Builder intentBuilder = Intent.builder();
+	//		Intent updateIntent = intentBuilder.withSlots(updateSlots).build();
+	//
+	//		//***Create new delegate directive***
+	//		DelegateDirective.Builder ddBuilder = DelegateDirective.builder().withUpdatedIntent(updateIntent);
+	//		DelegateDirective dd = ddBuilder.build();
+	//		
+	//		//***Create new response builder***
+	//		ResponseBuilder responseBuilder = input.getResponseBuilder();
+	//
+	//		responseBuilder.addDirective(dd).withSimpleCard("EquipSession", "What equipment do you want know about")
+	//		.withSpeech("What equipment do you want know about")
+	//		.withShouldEndSession(false);
+	//
+	//
+	//		responseBuilder.build();
+	//	}
 
-	
-	public static void main (String[] argrs) {
-		//since last week (W45), since this week (W46), to this week (W46,false) 
-		//since last month, since this month, to this month
-//		String d = "2018-11"; 
-//		boolean isStart = false;
-//		System.out.println(convertDate(d,isStart));
-//		String[] s = dateHandler("2018-W45","2018-W46");
-//		System.out.println(s[0] + s[1]);
+	@Override
+	public Optional<Response> handle(HandlerInput input) {
+
+		//Capture input as JSON file 
+		Request request = input.getRequestEnvelope().getRequest();
+		IntentRequest intentRequest = (IntentRequest) request;
+
+		// The intentRequest variable here is the IntentRequest object sent to the skill.
+		if (intentRequest.getDialogState() == DialogState.STARTED){
+			// Pre-fill slots: update the intent object with slot values for which
+			// you have defaults, then return Dialog.Delegate with this updated intent
+			// in the updatedIntent property.
+
+			//UPDATE TIME SLOTS 
+
+			Intent intent = intentRequest.getIntent();
+			//Get slots from intent object as a map
+			Map<String, Slot> slots = intent.getSlots();
+
+			// Get the input slots
+			Slot startTimeSlot = slots.get(START_TIME);
+			Slot endTimeSlot = slots.get(END_TIME);
+
+			String startTime = startTimeSlot.getValue();
+			String endTime = endTimeSlot.getValue(); //== null ? null : endTimeSlot.getValue();
+
+			//***Pre Process Dates****
+			String[] start_end = dateHandler(startTime,endTime);
+
+			//***Create new slots***
+			Slot.Builder startSlotBuilder = Slot.builder().withName(START_TIME).withValue(start_end[0]);
+			startTimeSlot = startSlotBuilder.build();
+
+			Slot.Builder endSlotBuilder = Slot.builder().withName(END_TIME).withValue(start_end[1]);
+			endTimeSlot = endSlotBuilder.build();
+
+			Slot.Builder nameSlotBuilder = Slot.builder().withName(EQUIP_NAME).withConfirmationStatus(SlotConfirmationStatus.NONE);
+			Slot equipNameSlot = nameSlotBuilder.build();
+
+			Map<String,Slot> updateSlots = new HashMap<String,Slot>();  
+			updateSlots.put(START_TIME, startTimeSlot); updateSlots.put(END_TIME, endTimeSlot); updateSlots.put(EQUIP_NAME, equipNameSlot);
+
+			//***Create new intents***
+			Intent.Builder intentBuilder = Intent.builder();
+			Intent updateIntent = intentBuilder.withSlots(updateSlots).withName("EquipHourIntent").build();
+
+			//***Create new delegate directive***
+			//			DelegateDirective.Builder ddBuilder = DelegateDirective.builder().withUpdatedIntent(updateIntent);
+			//			DelegateDirective dd = ddBuilder.build();
+
+			//***Create new elicit directive
+			ElicitSlotDirective.Builder edBuilder = ElicitSlotDirective.builder().withSlotToElicit(EQUIP_NAME).withUpdatedIntent(updateIntent);
+			ElicitSlotDirective ed = edBuilder.build();
+
+
+			//***Create new response builder***
+			ResponseBuilder responseBuilder = input.getResponseBuilder();
+
+			responseBuilder.addDirective(ed).withSimpleCard("EquipSession", "What equipment do you want know about")
+			.withSpeech("Please provide an equipment name")
+			.withShouldEndSession(false);
+
+
+			return responseBuilder.build();
+
+		} else if (intentRequest.getDialogState() != DialogState.IN_PROGRESS){
+			// return a Dialog.Delegate directive with no updatedIntent property.
+			//Generate intent object
+			Intent intent = intentRequest.getIntent();
+
+			DelegateDirective.Builder ddBuilder = DelegateDirective.builder().withUpdatedIntent(intent);
+			DelegateDirective dd = ddBuilder.build();
+
+			ResponseBuilder responseBuilder = input.getResponseBuilder();
+
+			responseBuilder.withSpeech("What equipment do you want know about")
+			.withShouldEndSession(false).addDirective(dd);
+
+
+			return responseBuilder.build();
+		} else {
+			// Dialog is now complete and all required slots should be filled,
+			// so call your normal intent handler. 
+			//Generate intent object
+			Intent intent = intentRequest.getIntent();
+			//Get slots from intent object as a map
+			Map<String, Slot> slots = intent.getSlots();
+
+			// Get the input slots
+			Slot equipNameSlot = slots.get(EQUIP_NAME);
+			Slot startTimeSlot = slots.get(START_TIME);
+			Slot endTimeSlot = slots.get(END_TIME);
+
+			//Set up response
+			String speechText = "Empty";
+			String repromptText = "Empty";
+			boolean isAskResponse = false;
+
+			//Stringify all the slot 
+			String equipName = equipNameSlot.getValue();
+			String startTime = startTimeSlot.getValue();
+			String endTime = endTimeSlot.getValue();
+
+			//**** if startTime is not provided => failed
+			//****// CALL API //****// 
+			EquipHour apicall = new EquipHour();
+			apicall.run(equipName, startTime, endTime);
+			int CMH = apicall.cmhChange();
+			
+			//IF API CANNOT FIND THE EQUIPMENT NAME
+			if (CMH == -1) {
+				speechText = "Your equipment may not exist or may have not been valid from " + startTime + " to " + endTime;
+			}
+			//IF THE EQUIPMENT WAS WORKING 
+			else if (CMH != 0){
+				speechText = equipName + " has been running for " + CMH + " hours from " + startTime + " to " + endTime;
+			}
+			//IF API RETURN AN ERROR
+			else {
+				speechText = equipName + " was not working at all from " + startTime + " to " + endTime;
+
+			}
+			repromptText = "Anything else?";
+
+
+			//Building the response
+			ResponseBuilder responseBuilder = input.getResponseBuilder();
+
+			responseBuilder.withSimpleCard("EquipSession", speechText)
+			.withSpeech(speechText)
+			.withShouldEndSession(false);
+
+			//			if (isAskResponse) {
+			//				responseBuilder.withShouldEndSession(false)
+			//				.withReprompt(repromptText);
+			//			}
+			return responseBuilder.build();
+		}
 	}
+
+
+	//	public static void main (String[] argrs) {
+	////		since last week (W45), since this week (W46), to this week (W46,false) 
+	////		since last month, since this month, to this month
+	//		String d = "2018-11"; 
+	//		boolean isStart = false;
+	//		System.out.println(convertDate(d,isStart));
+	//		String[] s = dateHandler("2018-W45","2018-W46");
+	//		System.out.println(s[0] + s[1]);
+	//	}
 
 	//To check if a given date is in correct form of "yyyy-MM-dd"
 	//source: http://www.java2s.com/Tutorial/Java/0120__Development/CheckifaStringisavaliddate.htm
@@ -128,7 +312,7 @@ public class EquipHourHandler implements RequestHandler {
 		} else {
 			start = checkValidYear(start);
 		}
-	
+
 		if (!isValidFormatted(end)) {
 			end = convertDate(end,false);
 		} else {
@@ -138,88 +322,82 @@ public class EquipHourHandler implements RequestHandler {
 		return new String[] {start, end};
 	}
 
-	@Override
-	public Optional<Response> handle(HandlerInput input) {
+	//	@Override
+	//	public Optional<Response> handle(HandlerInput input) {
+	//
+	//		//Capture input as JSON file 
+	//		Request request = input.getRequestEnvelope().getRequest();
+	//		IntentRequest intentRequest = (IntentRequest) request;
+	//		//Generate intent object
+	//		Intent intent = intentRequest.getIntent();
+	//		//Get slots from intent object as a map
+	//		Map<String, Slot> slots = intent.getSlots();
+	//
+	//		// Get the input slots
+	//		Slot equipNameSlot = slots.get(EQUIP_NAME);
+	//		Slot startTimeSlot = slots.get(START_TIME);
+	//		Slot endTimeSlot = slots.get(END_TIME);
+	//
+	//
+	//		//Check for validity of inputs 
+	//		boolean isValidInput = (startTimeSlot != null); //only startTime and equipName are mandatory
+	//
+	//		//Set up response
+	//		String speechText = "Empty";
+	//		String repromptText = "Empty";
+	//		boolean isAskResponse = false;
+	//
+	//
+	//		if (isValidInput) {
+	//			//Stringify all the slot 
+	//			//String equipName = equipNameSlot.getValue();
+	//			String startTime = startTimeSlot.getValue();
+	//			String endTime = endTimeSlot == null ? null : endTimeSlot.getValue();
+	//
+	//			//***Pre Process Dates****
+	//			String[] start_end = dateHandler(startTime,endTime);
+	//			
+	//			//**** if startTime is not provided => failed
+	//			//****// CALL API //****// 
+	//			String CMH = "20";
+	//
+	//			//IF API RETURN POSITIVE MESSAGE 
+	//			if (CMH == "20"){
+	//				speechText = " X has been running for " + CMH + " hours from " + start_end[0] + " to " + start_end[1];
+	//			}
+	//			//IF API RETURN AN ERROR
+	//			else {
+	//				speechText = 
+	//						"There's an error from request to the API with start time: " 
+	//								+ start_end[0] + ", end time: " + start_end[1] + ". please try again";
+	//			}
+	//			repromptText = "Anything else?";
+	//		} //IF INPUTS HAVE ERROR
+	//		else {			
+	//			speechText = "There is a problem with you time input, please try again";
+	//			
+	//			//			if (isValid(startTimeSlot.getValue(),endTimeSlot.getValue())){
+	//			//				speechText += " the input time are invalid";
+	//			//			}
+	//			isAskResponse = true;
+	//			repromptText = "Anything else?";
+	//		}
+	//
+	//		//Building the response
+	//		ResponseBuilder responseBuilder = input.getResponseBuilder();
+	//
+	//		responseBuilder.withSimpleCard("EquipSession", speechText)
+	//		.withSpeech(speechText)
+	//		.withShouldEndSession(false);
+	//
+	//		if (isAskResponse) {
+	//			responseBuilder.withShouldEndSession(false)
+	//			.withReprompt(repromptText);
+	//		}
+	//
+	//		return responseBuilder.build();
+	//	}
 
-		//Capture input as JSON file 
-		Request request = input.getRequestEnvelope().getRequest();
-		IntentRequest intentRequest = (IntentRequest) request;
-		//Generate intent object
-		Intent intent = intentRequest.getIntent();
-		//Get slots from intent object as a map
-		Map<String, Slot> slots = intent.getSlots();
-
-		// Get the input slots
-		Slot equipNameSlot = slots.get(EQUIP_NAME);
-		Slot startTimeSlot = slots.get(START_TIME);
-		Slot endTimeSlot = slots.get(END_TIME);
-
-
-		//Check for validity of inputs 
-		boolean isValidInput = (startTimeSlot != null); //only startTime and equipName are mandatory
-
-		//Set up response
-		String speechText = "Empty";
-		String repromptText = "Empty";
-		boolean isAskResponse = false;
-
-
-		if (isValidInput) {
-			//Stringify all the slot 
-			//String equipName = equipNameSlot.getValue();
-			String startTime = startTimeSlot.getValue();
-			String endTime = endTimeSlot == null ? null : endTimeSlot.getValue();
-
-			//***Pre Process Dates****
-			String[] start_end = dateHandler(startTime,endTime);
-			
-			//**** if startTime is not provided => failed
-			//****// CALL API //****// 
-			String CMH = "20";
-
-			//IF API RETURN POSITIVE MESSAGE 
-			if (CMH == "20"){
-				speechText = " X has been running for " + CMH + " hours. From " + start_end[0] + " to " + start_end[1];
-			}
-			//IF API RETURN AN ERROR
-			else {
-				speechText = 
-						"There's an error from request to the API with start time: " 
-								+ start_end[0] + ", end time: " + start_end[1] + ". please try again";
-			}
-			repromptText = "Anything else?";
-		} //IF INPUTS HAVE ERROR
-		else {
-			//if it's the name
-//			if (equipNameSlot == null) {
-//				speechText = "I'm not sure what the equipment's name is, please try again";
-//			}
-			
-			speechText = "There is a problem with you time input, please try again";
-			
-			//			if (isValid(startTimeSlot.getValue(),endTimeSlot.getValue())){
-			//				speechText += " the input time are invalid";
-			//			}
-			isAskResponse = true;
-			repromptText = "Anything else?";
-		}
-
-
-		//Building the response
-		ResponseBuilder responseBuilder = input.getResponseBuilder();
-
-		responseBuilder.withSimpleCard("EquipSession", speechText)
-		.withSpeech(speechText)
-		.withShouldEndSession(false);
-
-		if (isAskResponse) {
-			responseBuilder.withShouldEndSession(false)
-			.withReprompt(repromptText);
-		}
-
-		return responseBuilder.build();
-	}
-	
 	//Test Case***** 
 	//since last week  - since "yyyy-Wxx"   (start)
 	//since yesterday/date - since "yyyy-mm-dd" (start)
@@ -228,7 +406,7 @@ public class EquipHourHandler implements RequestHandler {
 	//from last week to this week - from "yyyy-Wxx" to "yyyy-Wxx" (start-end)
 	//from date to date  - from "yyyy-mm-dd" to "yyyy-mm-dd"
 	//from this month to this month - from "yyyy-mm" to "yyyy-mm"
-	
+
 	//since last week (W45), since this week (W46), to this week (W46,false) 
 	//since last month, since this month, to this month
 }

@@ -5,19 +5,22 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 
 import org.apache.commons.codec.binary.Base64;
 
 public class LatestTransaction {
 	//A String that will be altered and cut to find the desired information
-	public static String equipLine;
+	public String equipLine;
 
 	//an int that will count the total number of equipment that belongs to that company
-	public static int numEquip = 0;
+	public int numEquip = 0;
 
-	public static String[] info;
-	public static int equipIndex;
+	public String[] info;
+	public int equipIndex;
 
 	public LatestTransaction() {
 		equipLine = "";
@@ -29,8 +32,12 @@ public class LatestTransaction {
 	 * Calls the HTTP GET with basic auth and sets "equipLine" which is the string
 	 * that holds all data from the GET
 	 */
-	public static void run(String equip) {
-		String path = "https://service.equipchat.com/EquipchatTransactionService.svc//Transactions/10-28-2018%2012:00:00%20AM/11-04-2018%2011:59:59%20PM";
+	public void run(String equip) {
+		//String[] timePeriod = getDate();
+		String[] timePeriod = new String[] {"11-01-2018", "11-20-2018"};
+
+		String path = "https://service.equipchat.com/EquipchatTransactionService.svc//Transactions/"+timePeriod[0]
+				+"%2012:00:00%20AM/"+timePeriod[1]+"%2011:59:59%20PM";
 		String line = "";
 		ArrayList<String> allLines = new ArrayList<String>();
 		try {
@@ -41,7 +48,6 @@ public class LatestTransaction {
 			while ((line = reader.readLine()) != null) {
 				equipLine = line;
 				allLines.add(line);
-				//System.out.println(line);
 			}
 			reader.close();
 
@@ -59,7 +65,7 @@ public class LatestTransaction {
 			for(String s : info) {
 				if( s.contains(equip)){
 					equipIndex = counter;
-					//System.out.println("found it on line " + equipIndex);
+					System.out.println("Break!: " + counter);
 					break;
 				}			
 				counter++;
@@ -70,9 +76,9 @@ public class LatestTransaction {
 			long timeAfter = System.currentTimeMillis();
 
 			long totalTime = (timeAfter - timeStart)/1000;
-//			System.out.println();
-//			System.out.println("it took: " + totalTime + " seconds");
-//			System.out.println();
+			System.out.println();
+			System.out.println("it took: " + totalTime + " seconds");
+			System.out.println();
 
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -84,7 +90,7 @@ public class LatestTransaction {
 	 */
 
 	//Basic authentication set up
-	private static URLConnection setUsernamePassword(URL url) throws IOException {
+	private URLConnection setUsernamePassword(URL url) throws IOException {
 		String username = "rtosten";
 		String password = "BTedu18";
 		URLConnection urlConnection = url.openConnection();
@@ -94,37 +100,84 @@ public class LatestTransaction {
 		return urlConnection;
 	}
 
-	public static String[] basicTransactionInfo() {
-		String[] allInfo = new String[3];
-		//tType + 9
-		//pdaUsername + 11
-		//jobsite + 16
+	public String[] basicTransactionInfo() {
+		String[] allInfo = new String[5];
 
-		String tType = info[equipIndex+9].split(":")[1].split("\"")[1];
-		String pdaUsername = info[equipIndex+11].split(":")[1];
-		String jobsite = info[equipIndex+16].split(":")[1].split("}")[0];
+		if (equipIndex != -1) {
+			String date = info[equipIndex-1].split("\\s+")[0];
+			date = date.split(":\"")[1];
+			String time = info[equipIndex-1].split("\\s+")[1] + info[equipIndex-1].split("\\s+")[2].split("\"")[0];
+			String tType = info[equipIndex+9].split(":")[1].split("\"")[1];
+			String pdaUsername = info[equipIndex+11].split(":")[1];
+			String jobsite = info[equipIndex+16].split(":")[1].split("\"")[1];
 
-		if( pdaUsername.equals("null")) {
-			pdaUsername = "No PDAUsername assigned";
+			if( pdaUsername.equals("null")) {
+				pdaUsername = "No PDAUsername assigned";
+			}
+
+			if( jobsite.equals("null")) {
+				jobsite = "No jobsite assigned";
+			}
+
+			//		System.out.println("date is "+date);
+			//		System.out.println("time is "+time);
+			//		System.out.println("transaction type is "+tType);
+			//		System.out.println("PDAUsername is "+pdaUsername);
+			//		System.out.println("Jobsite is "+jobsite);
+
+			allInfo[0] = date;
+			allInfo[1] = time;
+			allInfo[2] = tType;
+			allInfo[3] = pdaUsername;
+			allInfo[4] = jobsite;
+
+			return allInfo;
 		}
-
-		if( jobsite.equals("null")) {
-			jobsite = "No jobsite assigned";
+		else {
+			return new String[0];
 		}
-
-		System.out.println("transaction type is "+tType);
-		System.out.println("PDAUsername is "+pdaUsername);
-		System.out.println("Jobsite is "+jobsite);
-
-		allInfo[0] = tType;
-		allInfo[1] = pdaUsername;
-		allInfo[2] = jobsite;
-
-		return allInfo;
 	}
 
 //	public static void main(String[] args) {
-//		run("bulldozer");
-//		basicTransactionInfo();
+//		LatestTransaction apicall = new LatestTransaction();
+//		apicall.run("abc");
+//		String[] result = apicall.basicTransactionInfo();
+//		String speechText = " ";
+//		if (result.length != 0){
+//			//0: date  1: time  2: transactionType   3: pdaUsername  4: jobSite
+//			String date = result[0];
+//			String time = result[1];
+//			String type = result[2];
+//			String user = result[3];
+//			String jobSite = result[4];
+//			
+//			speechText =  "abc last transaction is " + type + " at jobsite " + jobSite + " on " + date + " at " + time;
+//			//if there is no user available 
+//			if (user.contains("No"))
+//				speechText += " with no available username assigned";
+//			else {
+//				speechText += " operated by " + user;
+//			}
+//		}
+//		//IF API RETURN AN ERROR
+//		else {
+//			speechText = 
+//					"There's an error from request to the API with equipment or the equipment does not exist. please try again";
+//		}
+//		System.out.println(speechText);
 //	}
+
+	//Only consider transactions within 3 months since the request is called 
+	public static String[] getDate() {
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		Calendar cal = Calendar.getInstance();
+
+		String start = dateFormat.format(cal.getTime());
+
+		cal.add(Calendar.MONTH, -3);
+
+		String end = dateFormat.format(cal.getTime());
+
+		return new String[] {start, end};
+	}
 }
