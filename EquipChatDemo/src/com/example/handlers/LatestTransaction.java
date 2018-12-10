@@ -13,28 +13,42 @@ import java.util.Calendar;
 import org.apache.commons.codec.binary.Base64;
 
 public class LatestTransaction {
-	//A String that will be altered and cut to find the desired information
+
+	/**
+	 * A String that will be altered and cut to find the desired information
+	 */
 	public String equipLine;
 
-	//an int that will count the total number of equipment that belongs to that company
-	public int numEquip = 0;
+	/**
+	 * An integer that will count the total number of equipment that belongs to that company
+	 */
+	public int numEquip;
 
-	public String[] info;
+	/**
+	 * An index indicated the start position of the requested equipment in the response
+	 */
 	public int equipIndex;
+
+	/**
+	 * A data structure stores each line of the return response 
+	 */
+	public String[] info;
 
 	public LatestTransaction() {
 		equipLine = "";
 		equipIndex = -1;
+		numEquip = 0;
 		info = new String[0];
 	}	
 
-	/*
-	 * Calls the HTTP GET with basic auth and sets "equipLine" which is the string
-	 * that holds all data from the GET
+	/**
+	 * Calls the API Call Transactions with basic authentication and sets "equipLine" which is the string
+	 * that holds all data from the GET. 
+	 * The start date of the search is 3 months from the current date, the end date of the search is current date
+	 * @param  equip - equipment's name
 	 */
 	public void run(String equip) {
-		//String[] timePeriod = getDate();
-		String[] timePeriod = new String[] {"11-01-2018", "11-20-2018"};
+		String[] timePeriod = getDate();
 
 		String path = "https://service.equipchat.com/EquipchatTransactionService.svc//Transactions/"+timePeriod[0]
 				+"%2012:00:00%20AM/"+timePeriod[1]+"%2011:59:59%20PM";
@@ -85,11 +99,10 @@ public class LatestTransaction {
 		}
 	}
 
-	/*
-	 * Over time period
+	/**
+	 * Basic authorization set up
+	 * @return the connection url with basic authorization set up
 	 */
-
-	//Basic authentication set up
 	private URLConnection setUsernamePassword(URL url) throws IOException {
 		String username = "rtosten";
 		String password = "BTedu18";
@@ -100,6 +113,11 @@ public class LatestTransaction {
 		return urlConnection;
 	}
 
+	/**
+	 * Extracting information (date, time, transaction type, username and jobsite) of 
+	 * the lastest transaction found and return as a string array
+	 * @return allInfo - a string array of size 5: 0-date, 1-time, 2-transaction type, 3-user, 4-jobsite
+	 */
 	public String[] basicTransactionInfo() {
 		String[] allInfo = new String[5];
 
@@ -138,36 +156,12 @@ public class LatestTransaction {
 		}
 	}
 
-//	public static void main(String[] args) {
-//		LatestTransaction apicall = new LatestTransaction();
-//		apicall.run("abc");
-//		String[] result = apicall.basicTransactionInfo();
-//		String speechText = " ";
-//		if (result.length != 0){
-//			//0: date  1: time  2: transactionType   3: pdaUsername  4: jobSite
-//			String date = result[0];
-//			String time = result[1];
-//			String type = result[2];
-//			String user = result[3];
-//			String jobSite = result[4];
-//			
-//			speechText =  "abc last transaction is " + type + " at jobsite " + jobSite + " on " + date + " at " + time;
-//			//if there is no user available 
-//			if (user.contains("No"))
-//				speechText += " with no available username assigned";
-//			else {
-//				speechText += " operated by " + user;
-//			}
-//		}
-//		//IF API RETURN AN ERROR
-//		else {
-//			speechText = 
-//					"There's an error from request to the API with equipment or the equipment does not exist. please try again";
-//		}
-//		System.out.println(speechText);
-//	}
-
-	//Only consider transactions within 3 months since the request is called 
+	/**
+	 * Return a correct start date and end date for the API Call 
+	 * start date: 3 months before the current date
+	 * end date: the current date
+	 * @return The start and end date string representation of "yyyy-MM-dd"
+	 */	
 	public static String[] getDate() {
 		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		Calendar cal = Calendar.getInstance();
@@ -180,4 +174,33 @@ public class LatestTransaction {
 
 		return new String[] {start, end};
 	}
+
+	//	public static void main(String[] args) {
+	//	LatestTransaction apicall = new LatestTransaction();
+	//	apicall.run("abc");
+	//	String[] result = apicall.basicTransactionInfo();
+	//	String speechText = " ";
+	//	if (result.length != 0){
+	//		//0: date  1: time  2: transactionType   3: pdaUsername  4: jobSite
+	//		String date = result[0];
+	//		String time = result[1];
+	//		String type = result[2];
+	//		String user = result[3];
+	//		String jobSite = result[4];
+	//		
+	//		speechText =  "abc last transaction is " + type + " at jobsite " + jobSite + " on " + date + " at " + time;
+	//		//if there is no user available 
+	//		if (user.contains("No"))
+	//			speechText += " with no available username assigned";
+	//		else {
+	//			speechText += " operated by " + user;
+	//		}
+	//	}
+	//	//IF API RETURN AN ERROR
+	//	else {
+	//		speechText = 
+	//				"There's an error from request to the API with equipment or the equipment does not exist. please try again";
+	//	}
+	//	System.out.println(speechText);
+	//}
 }

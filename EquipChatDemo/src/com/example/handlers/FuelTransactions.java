@@ -11,21 +11,37 @@ import org.apache.commons.codec.binary.Base64;
 
 public class FuelTransactions {
 
-	//A String that will be altered and cut to find the desired information
+	/**
+	 * A String that will be altered and cut to find the desired information
+	 */
 	public String equipLine;
 
-	//an int that will count the total number of equipment that belongs to that company
-	public int numEquip = 0;
-
-	public String[] info;
+	/**
+	 * An integer that will count the total number of equipment that belongs to that company
+	 */
+	public int numEquip;
+	
+	/**
+	 * An index indicated the start position of the requested equipment in the response
+	 */
 	public int equipIndex;
+	
+	/**
+	 * A data structure stores each line of the return response 
+	 */
+	public String[] info;
 
 	public FuelTransactions() {
 		equipLine = "";
 		equipIndex = -1;
 	}
 
-	//***When User Provide only ID
+	/**
+	 * Calls the API Call FuelTransactions with basic authentication and sets "equipLine" which is the string
+	 * that holds all data from the GET
+	 * Used when ID of the transaction is provided
+	 * @param transID - ID transaction in string representation
+	 */
 	public void run(String transID) {	
 		String path = "https://service.equipchat.com/EquipchatTransactionService.svc/FuelTransactions/100000000"; // works
 		
@@ -77,7 +93,13 @@ public class FuelTransactions {
 		}
 	}
 
-	//***When User provide date range
+	/**
+	 * Calls the API Call FuelTransactions with basic authentication and sets "equipLine" which is the string
+	 * that holds all data from the GET
+	 * Used when start date is provided
+	 * @param startDate - start date of the search in string representation
+	 * 		  endDate - end date of the search in string representation 
+	 */	
 	public void run(String startDate, String endDate) {
 		String path = "https://service.equipchat.com/EquipchatTransactionService.svc//FuelTransactions/"+startDate+"%2012:00:00%20AM/"+endDate+"%2011:59:00%20PM"; // doesn't work
 
@@ -129,11 +151,10 @@ public class FuelTransactions {
 		}
 	}
 
-	/*
-	 * Over time period
+	/**
+	 * Basic authorization set up
+	 * @return the connection url with basic authorization set up
 	 */
-
-	//Basic authentication set up
 	private URLConnection setUsernamePassword(URL url) throws IOException {
 		String username = "rtosten";
 		String password = "BTedu18";
@@ -144,8 +165,11 @@ public class FuelTransactions {
 		return urlConnection;
 	}
 
-	//***Call this when user input only transactionID
-	//Return array of 3 info: type,volume,oum
+	/**
+	 * Extracting information (equipment name, transaction type, volume, oum, jobsite) of 
+	 * a specific transaction and return as a string array
+	 * @return allInfo - a string array of size 5: 0-name, 1-type, 2-volume, 3-uom, 4-jobsite
+	 */
 	public String[] fuelInfo() {
 		String[] allInfo = new String[5];
 
@@ -170,8 +194,12 @@ public class FuelTransactions {
 		return allInfo;	
 	}
 
-	//***Call this when user input startDate and endDate
-	//Return array of n equipments that have transaction within that period: name-fuel type-volume-uom-job site
+	/**
+	 * Extracting a list of information (equipment name, transaction type, volume, oum, jobsite) of 
+	 * a list of transactions within in the provided period and return as a string array
+	 * @return allInfo - a string array of size qual number of available equipment
+	 * each string will store: name, transaction type, volume, uom, and jobsite
+	 */
 	public String[] listOfFuelInfo() {
 		try {
 			String[] allInfo = new String[numEquip];
@@ -194,7 +222,7 @@ public class FuelTransactions {
 
 //	public static void main(String[] args) {
 //		FuelTransactions apicall = new FuelTransactions();
-//		apicall.run("11-01-2018","11-20-2018");
+		//apicall.run("11-01-2018","11-20-2018");
 //		apicall.run("2018-11-01","2018-11-20");
 //
 //		String[] r = apicall.listOfFuelInfo();
@@ -229,7 +257,5 @@ public class FuelTransactions {
 //			speechText = "This transaction belongs to equipment " + name + " .Fuel type is " + type + " with a volume of " + volume + " " + uom + " at jobsite " +jobsite;
 //		}
 //		System.out.println(speechText);
-//
-//		
 //	}
 }

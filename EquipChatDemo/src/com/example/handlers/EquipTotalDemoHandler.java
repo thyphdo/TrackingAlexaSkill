@@ -17,12 +17,34 @@ import static com.amazon.ask.request.Predicates.intentName;
 //Source: https://github.com/alexa/alexa-skills-kit-sdk-for-java
 public class EquipTotalDemoHandler implements RequestHandler {
 
+	/**
+	 * Name of the slot provided by the Alexa Skill Service
+	 * jobSiteName - name of the jobsite whose the user wants to check the number of total equipments
+	 */
 	public static final String JOBSITE_NAME = "jobSiteName";
 
+	/**
+	 * Returns if the Alexa skill service's input matches with the intent this handler cover
+	 *	
+	 * @param input 
+	 * @return whether the input's intent is EquipTotalIntent 
+	 */
 	public boolean canHandle(HandlerInput input) {
 		return input.matches(intentName("EquipTotalIntent"));
 	}
 
+	/**
+	 * Build an according response based on the input request 
+	 * Correct messages: There are X machines at jobsite Y or There are no machines at jobsite Y.
+	 * Incorrect messages: I'm not sure what the job site's name is, please try again.
+	 * Reprompt message: You can ask me again by kindly saying: tell me about the jobsite.
+	 * 
+	 * @Override
+	 * @param input 
+	 * @return a response builder with relevant message if successful from the API call 
+	 * or a message indicating errors so the SDK sends the correct JSON object back to user.
+	 */
+	@Override
 	public Optional<Response> handle(HandlerInput input) {
 
 		Request request = input.getRequestEnvelope().getRequest();
@@ -40,6 +62,8 @@ public class EquipTotalDemoHandler implements RequestHandler {
 		if (jobSiteSlot != null) {
 			// Store the job site name in the Session and create response.
 			String jobSiteName = jobSiteSlot.getValue().toLowerCase();
+			
+			//****// CALL API //****// 
 			NumOnJobsite info = new NumOnJobsite();
 			info.run(jobSiteName);
 			
@@ -63,7 +87,6 @@ public class EquipTotalDemoHandler implements RequestHandler {
 							"There are " + totalMachines + " machines at " + jobSiteName;
 				}
 				
-
 				repromptText =
 						"You can ask me again by kindly saying, " + "tell me about the job site";
 			}

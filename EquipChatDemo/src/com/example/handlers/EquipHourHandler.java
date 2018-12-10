@@ -19,66 +19,56 @@ import com.amazon.ask.model.Request;
 import com.amazon.ask.model.Response;
 import com.amazon.ask.model.Slot;
 import com.amazon.ask.model.SlotConfirmationStatus;
-import com.amazon.ask.model.Directive;
 import com.amazon.ask.model.dialog.DelegateDirective;
-import com.amazon.ask.model.dialog.DelegateDirective.Builder;
 import com.amazon.ask.model.dialog.ElicitSlotDirective;
 import com.amazon.ask.response.ResponseBuilder;
 
-//import com.amazon.speech.speechlet.Directive;
-//import com.amazon.speech.speechlet.SpeechletResponse;
-//import com.amazon.speech.speechlet.dialog.directives.DelegateDirective;
-//import com.amazon.speech.speechlet.dialog.directives.DialogIntent;
-//import com.amazon.speech.speechlet.dialog.directives.DialogSlot;
-
-
-//***** Done dealing with dates, yet with equipName*****//
-
 public class EquipHourHandler implements RequestHandler {
 
+	/**
+	 * Name of the slot provided by the Alexa Skill Service
+	 * equipName - equipment ID whose the user wants to check the CMH of
+	 */
 	public static final String EQUIP_NAME = "equipName";
+	
+	/**
+	 * Name of the slot provided by the Alexa Skill Service
+	 * startTime - start time of period where the user wants to check the CMH of the machine
+	 */
 	public static final String START_TIME = "startTime";
+	
+	/**
+	 * Name of the slot provided by the Alexa Skill Service
+	 * endTime - end time of period where the user wants to check the CMH of the machine
+	 */
 	public static final String END_TIME = "endTime";
 
-	//EquipHourIntent
-	//Slot types: 
-	//equipName - Amazon.SearchQuery 
-	//startTime - Amazon.Date (yyyy-mm-dd)
-	//endTime - Amazon.Date (yyyy-mm-dd)
+	/**
+	 * Returns if the Alexa skill service's input matches with the intent this handler cover
+	 *	
+	 * @param input 
+	 * @return whether the input's intent is EquipHourIntent 
+	 */
 	public boolean canHandle(HandlerInput input) {
 		return input.matches(intentName("EquipHourIntent"));
 	}
-	//	public static void main(String[] arg) {
-	//		
-	//		
-	//		//***Create new slots***
-	//		Slot.Builder startSlotBuilder = Slot.builder().withName(START_TIME).withValue("11-01-2018");
-	//		Slot startTimeSlot = startSlotBuilder.build();
-	//		
-	//		Slot.Builder endSlotBuilder = Slot.builder().withName(END_TIME).withValue("11-20-2018");
-	//		Slot endTimeSlot = endSlotBuilder.build();
-	//		
-	//		Map<String,Slot> updateSlots = new HashMap<String,Slot>();  slots.put(START_TIME, startTimeSlot); slots.put(END_TIME, endTimeSlot);
-	//		
-	//		//***Create new intents***
-	//		Intent.Builder intentBuilder = Intent.builder();
-	//		Intent updateIntent = intentBuilder.withSlots(updateSlots).build();
-	//
-	//		//***Create new delegate directive***
-	//		DelegateDirective.Builder ddBuilder = DelegateDirective.builder().withUpdatedIntent(updateIntent);
-	//		DelegateDirective dd = ddBuilder.build();
-	//		
-	//		//***Create new response builder***
-	//		ResponseBuilder responseBuilder = input.getResponseBuilder();
-	//
-	//		responseBuilder.addDirective(dd).withSimpleCard("EquipSession", "What equipment do you want know about")
-	//		.withSpeech("What equipment do you want know about")
-	//		.withShouldEndSession(false);
-	//
-	//
-	//		responseBuilder.build();
-	//	}
 
+	/**
+	 * Build an according response based on the input request. 
+	 * 		If the dialogue's status is in progress: prompt for the equipment name 
+	 * 		If the dialogue's status is completed: check the require slots and out the applicable responses
+	 * 
+	 * Correct messages: 1. Please provide an equipment name
+	 * 					 2. X has been running for Y hours from startTime to endTime or X has not been working at all from 
+	 * 						startTime to endTime
+	 * Incorrect messages: Your equipment may not exist or have not been working from startTime to endTime
+	 * Reprompt message: Please try again by saying generate EquipHour from a start time to an end time
+	 *
+	 * @Override
+	 * @param input 
+	 * @return a response builder with relevant message if successful from the API call 
+	 * or a message indicating errors so the SDK sends the correct JSON object back to user.
+	 */
 	@Override
 	public Optional<Response> handle(HandlerInput input) {
 
@@ -175,7 +165,6 @@ public class EquipHourHandler implements RequestHandler {
 			//Set up response
 			String speechText = "Empty";
 			String repromptText = "Empty";
-			boolean isAskResponse = false;
 
 			//Stringify all the slot 
 			String equipName = equipNameSlot.getValue();
@@ -190,48 +179,71 @@ public class EquipHourHandler implements RequestHandler {
 			
 			//IF API CANNOT FIND THE EQUIPMENT NAME
 			if (CMH == -1) {
-				speechText = "Your equipment may not exist or may have not been valid from " + startTime + " to " + endTime;
+				speechText = "Your equipment may not exist or have not been working from " + startTime + " to " + endTime;
+				repromptText = "Please try again by saying something like generate EquipHour from yesterday to today";
 			}
 			//IF THE EQUIPMENT WAS WORKING 
 			else if (CMH != 0){
 				speechText = equipName + " has been running for " + CMH + " hours from " + startTime + " to " + endTime;
+				repromptText = "Anything else?";
+
 			}
 			//IF API RETURN AN ERROR
 			else {
 				speechText = equipName + " was not working at all from " + startTime + " to " + endTime;
-
+				repromptText = "Please try again by saying generate EquipHour from yesterday to today";
 			}
-			repromptText = "Anything else?";
-
 
 			//Building the response
 			ResponseBuilder responseBuilder = input.getResponseBuilder();
 
 			responseBuilder.withSimpleCard("EquipSession", speechText)
 			.withSpeech(speechText)
-			.withShouldEndSession(false);
+			.withShouldEndSession(false)
+			.withReprompt(repromptText);
 
-			//			if (isAskResponse) {
-			//				responseBuilder.withShouldEndSession(false)
-			//				.withReprompt(repromptText);
-			//			}
 			return responseBuilder.build();
 		}
 	}
 
+	/**
+	 * Take in the startDate and endDate from the VUI, transform accordingly and 
+	 * return the startDate and endDate in the format of "yyyy-MM-dd"
+	 * @param String - start: start date
+	 * 		  String - end: end date (maybe null if user use "since")
+	 * @return The start and end date string representation of "yyyy-MM-dd"
+	 */
+	public static String[] dateHandler(String start, String end) {
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		Calendar cal = Calendar.getInstance();
 
-	//	public static void main (String[] argrs) {
-	////		since last week (W45), since this week (W46), to this week (W46,false) 
-	////		since last month, since this month, to this month
-	//		String d = "2018-11"; 
-	//		boolean isStart = false;
-	//		System.out.println(convertDate(d,isStart));
-	//		String[] s = dateHandler("2018-W45","2018-W46");
-	//		System.out.println(s[0] + s[1]);
-	//	}
+		//If "endDate" is not provided, "since___" is generated, today Date is assigned
+		if (end == null) {
+			end = dateFormat.format(cal.getTime());
+		}
+		//Check validity of start and end date yyyy-MM-dd
+		if (!isValidFormatted(start)) {
+			//convert if not in valid format
+			start = convertDate(start,true);
+		} else {
+			start = checkValidYear(start);
+		}
 
-	//To check if a given date is in correct form of "yyyy-MM-dd"
-	//source: http://www.java2s.com/Tutorial/Java/0120__Development/CheckifaStringisavaliddate.htm
+		if (!isValidFormatted(end)) {
+			end = convertDate(end,false);
+		} else {
+			end = checkValidYear(end);
+		}
+
+		return new String[] {start, end};
+	}
+	
+	/**
+	 * Returns if a date string representation is yyyy-MM-dd
+	 * Source: http://www.java2s.com/Tutorial/Java/0120__Development/CheckifaStringisavaliddate.html
+	 * @param String - date string representation from VUI 
+	 * @return whether the date is of format yyyy-MM-dd
+	 */
 	public static boolean isValidFormatted(String date) {
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		dateFormat.setLenient(false);
@@ -243,8 +255,13 @@ public class EquipHourHandler implements RequestHandler {
 		return true;
 	}
 
-	//handle the Years problem from Alexa's VUI
-	//If the user's utterance does not specify a year, Alexa defaults to dates on or after the current date.
+	/**
+	 * Returns a correct year in the form of "yyyy-MM-dd" for string representation of the given date
+	 * Handle the Years problem from Alexa's VUI (August 10th always yields August 10th year + 1). 
+	 * If the user's utterance does not specify a year, Alexa defaults to the year of the current date.
+	 * @param String - date string representation from VUI  
+	 * @return The date string representation with current year
+	 */
 	public static String checkValidYear(String date) {
 		//If succeed, double check if it's match the current year, fix if it's in the future 
 		String[] dateSplit = date.split("-");
@@ -256,7 +273,13 @@ public class EquipHourHandler implements RequestHandler {
 		return String.join("-", dateSplit);
 	}
 
-	//To convert "yyyy-Wxx" or "yyyy-MM" into "yyyy-MM-dd"
+	/**
+	 * Returns a correct form of date yyyy-MM-dd for string representation of the given date
+	 * Handle the case "yyyy-Wxx", "yyyy-MM"
+	 * @param String - date string representation from VUI 
+	 * 		  boolean - isStart: whether the input is the startTime 
+	 * @return The date string representation of "yyyy-MM-dd"
+	 */
 	public static String convertDate(String date, boolean isStart) {
 		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		Calendar cal = Calendar.getInstance();
@@ -297,105 +320,36 @@ public class EquipHourHandler implements RequestHandler {
 		return converted;
 	}
 
-	public static String[] dateHandler(String start, String end) {
-		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-		Calendar cal = Calendar.getInstance();
-
-		//If "endDate" is not provided, "since___" is generated, today Date is assigned
-		if (end == null) {
-			end = dateFormat.format(cal.getTime());
-		}
-		//Check validity of start and end date yyyy-MM-dd
-		if (!isValidFormatted(start)) {
-			//convert if not in valid format
-			start = convertDate(start,true);
-		} else {
-			start = checkValidYear(start);
-		}
-
-		if (!isValidFormatted(end)) {
-			end = convertDate(end,false);
-		} else {
-			end = checkValidYear(end);
-		}
-
-		return new String[] {start, end};
-	}
-
-	//	@Override
-	//	public Optional<Response> handle(HandlerInput input) {
+	
+	//	public static void main(String[] arg) {
+	//		
+	//		
+	//		//***Create new slots***
+	//		Slot.Builder startSlotBuilder = Slot.builder().withName(START_TIME).withValue("11-01-2018");
+	//		Slot startTimeSlot = startSlotBuilder.build();
+	//		
+	//		Slot.Builder endSlotBuilder = Slot.builder().withName(END_TIME).withValue("11-20-2018");
+	//		Slot endTimeSlot = endSlotBuilder.build();
+	//		
+	//		Map<String,Slot> updateSlots = new HashMap<String,Slot>();  slots.put(START_TIME, startTimeSlot); slots.put(END_TIME, endTimeSlot);
+	//		
+	//		//***Create new intents***
+	//		Intent.Builder intentBuilder = Intent.builder();
+	//		Intent updateIntent = intentBuilder.withSlots(updateSlots).build();
 	//
-	//		//Capture input as JSON file 
-	//		Request request = input.getRequestEnvelope().getRequest();
-	//		IntentRequest intentRequest = (IntentRequest) request;
-	//		//Generate intent object
-	//		Intent intent = intentRequest.getIntent();
-	//		//Get slots from intent object as a map
-	//		Map<String, Slot> slots = intent.getSlots();
-	//
-	//		// Get the input slots
-	//		Slot equipNameSlot = slots.get(EQUIP_NAME);
-	//		Slot startTimeSlot = slots.get(START_TIME);
-	//		Slot endTimeSlot = slots.get(END_TIME);
-	//
-	//
-	//		//Check for validity of inputs 
-	//		boolean isValidInput = (startTimeSlot != null); //only startTime and equipName are mandatory
-	//
-	//		//Set up response
-	//		String speechText = "Empty";
-	//		String repromptText = "Empty";
-	//		boolean isAskResponse = false;
-	//
-	//
-	//		if (isValidInput) {
-	//			//Stringify all the slot 
-	//			//String equipName = equipNameSlot.getValue();
-	//			String startTime = startTimeSlot.getValue();
-	//			String endTime = endTimeSlot == null ? null : endTimeSlot.getValue();
-	//
-	//			//***Pre Process Dates****
-	//			String[] start_end = dateHandler(startTime,endTime);
-	//			
-	//			//**** if startTime is not provided => failed
-	//			//****// CALL API //****// 
-	//			String CMH = "20";
-	//
-	//			//IF API RETURN POSITIVE MESSAGE 
-	//			if (CMH == "20"){
-	//				speechText = " X has been running for " + CMH + " hours from " + start_end[0] + " to " + start_end[1];
-	//			}
-	//			//IF API RETURN AN ERROR
-	//			else {
-	//				speechText = 
-	//						"There's an error from request to the API with start time: " 
-	//								+ start_end[0] + ", end time: " + start_end[1] + ". please try again";
-	//			}
-	//			repromptText = "Anything else?";
-	//		} //IF INPUTS HAVE ERROR
-	//		else {			
-	//			speechText = "There is a problem with you time input, please try again";
-	//			
-	//			//			if (isValid(startTimeSlot.getValue(),endTimeSlot.getValue())){
-	//			//				speechText += " the input time are invalid";
-	//			//			}
-	//			isAskResponse = true;
-	//			repromptText = "Anything else?";
-	//		}
-	//
-	//		//Building the response
+	//		//***Create new delegate directive***
+	//		DelegateDirective.Builder ddBuilder = DelegateDirective.builder().withUpdatedIntent(updateIntent);
+	//		DelegateDirective dd = ddBuilder.build();
+	//		
+	//		//***Create new response builder***
 	//		ResponseBuilder responseBuilder = input.getResponseBuilder();
 	//
-	//		responseBuilder.withSimpleCard("EquipSession", speechText)
-	//		.withSpeech(speechText)
+	//		responseBuilder.addDirective(dd).withSimpleCard("EquipSession", "What equipment do you want know about")
+	//		.withSpeech("What equipment do you want know about")
 	//		.withShouldEndSession(false);
 	//
-	//		if (isAskResponse) {
-	//			responseBuilder.withShouldEndSession(false)
-	//			.withReprompt(repromptText);
-	//		}
 	//
-	//		return responseBuilder.build();
+	//		responseBuilder.build();
 	//	}
 
 	//Test Case***** 

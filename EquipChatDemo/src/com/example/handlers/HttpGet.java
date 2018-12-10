@@ -10,31 +10,39 @@ import java.util.ArrayList;
 import org.apache.commons.codec.binary.Base64;
 
 public class HttpGet {
-	//A String that will be altered and cut to find the desired information
-	public static String equipLine;
+	
+	/**
+	 * A String that will be altered and cut to find the desired information
+	 */
+	public String equipLine;
 
-	//an int that will count the total number of equipment that belongs to that company
-	public static int numEquip;
-
-	public static String[] info;
-	public static int equipIndex;
-
+	/**
+	 * An integer that will count the total number of equipment that belongs to that company
+	 */
+	public int numEquip;
+	
+	/**
+	 * An index indicated the start position of the requested equipment in the response
+	 */
+	public int equipIndex;
+	
+	/**
+	 * A data structure stores each line of the return response 
+	 */
+	public String[] info;
+	
 	public HttpGet(){
 		equipIndex = -1;
 		equipLine = "";
 	}
-	
-	
-	
-	/*
-	 * Calls the HTTP GET with basic auth and sets "equipLine" which is the string
+
+	/**
+	 * Calls the HTTP GET with basic authentication and sets "equipLine" which is the string
 	 * that holds all data from the GET
 	 */
-	public static void run(String equip) {
+	public void run(String equip) {
 		String path = "https://service.equipchat.com/EquipchatTransactionService.svc/GetEquipment"; //works 
-		//String path = "https://service.equipchat.com/EquipchatTransactionService.svc/GetHours/10-28-2018/11-04-2018"; //works but takes a very long time
-		//String path = "https://service.equipchat.com/EquipchatTransactionService.svc/FuelTransactions/100000000"; // works
-		//String path = "https://service.equipchat.com/EquipchatTransactionService.svc//Transactions/10-28-2018%2012:00:00%20AM/11-04-2018%2011:59:59%20PM";
+
 		String line = "";
 		ArrayList<String> allLines = new ArrayList<String>();
 		try {
@@ -45,11 +53,8 @@ public class HttpGet {
 			while ((line = reader.readLine()) != null) {
 				equipLine = line;
 				allLines.add(line);
-				//System.out.println(line);
 			}
 			reader.close();
-
-
 
 			info = equipLine.split(",");
 
@@ -83,12 +88,11 @@ public class HttpGet {
 		}
 	}
 
-	/*
-	 * Over time period
+	/**
+	 * Basic authorization set up
+	 * @return the connection url with basic authorization set up
 	 */
-
-	//Basic authentication set up
-	private static URLConnection setUsernamePassword(URL url) throws IOException {
+	private URLConnection setUsernamePassword(URL url) throws IOException {
 		String username = "rtosten";
 		String password = "BTedu18";
 		URLConnection urlConnection = url.openConnection();
@@ -98,12 +102,11 @@ public class HttpGet {
 		return urlConnection;
 	}
 
-
 	/**
 	 * Returns the number of equipment as an int
 	 * @return --> the number of equipment as an int
 	 */
-	public static int equipTotal() {
+	public int equipTotal() {
 		return numEquip;
 	}
 
@@ -111,7 +114,7 @@ public class HttpGet {
 	 * Checks if the desired equipment is available or not
 	 * @return --> String containing either true or false
 	 */
-	public static String equipStatus(){
+	public String equipStatus(){
 		String avail = info[equipIndex-10].split(":")[1];
 		if(!avail.equals(null)) {
 			return avail;
@@ -123,7 +126,7 @@ public class HttpGet {
 	 * Gets the CMH (cumulative machine hours) and returns it as a String
 	 * @return --> The CMH represented as a String
 	 */
-	public static String equipCMH(){
+	public String equipCMH(){
 		// he had -7
 		String cmh = info[equipIndex-7].split(":")[1];
 		if(!cmh.equals(null)) {
@@ -137,7 +140,7 @@ public class HttpGet {
 	 * Gets the last date that information was pulled from the sensor and put onto the portal
 	 * @return --> The date of last transaction as a String
 	 */
-	public static String lastTransaction() {
+	public String lastTransaction() {
 		String transaction = info[equipIndex+5].split(":")[1];
 		if(!transaction.equals("\"\"")) {
 			return transaction.split("\"")[1].split(" ")[0];
@@ -150,7 +153,7 @@ public class HttpGet {
 	 * Returns the transaction number of latest transaction
 	 * @return --> A String containing the transaction number for the latest transaction
 	 */
-	public static String transactionInfo() {
+	public String transactionInfo() {
 		String transactionInfo = info[equipIndex+6].split(":")[1];
 		if(!transactionInfo.equals("\"\"")) {
 			return transactionInfo;
@@ -164,7 +167,7 @@ public class HttpGet {
 	 * NEED TO HAVE MAKE AND MODEL IN EQUIPCHAT
 	 * @return --> returns a String array of the make, model and jobsite of the equipment
 	 */
-	public static String[] equipInfo() {
+	public String[] equipInfo() {
 		String[] allInfo = new String[3];
 
 		String make = info[equipIndex+7].split(":")[1].split("\"")[1];
@@ -181,9 +184,12 @@ public class HttpGet {
 
 		return allInfo;
 	}
-	
-	// This gets jobsite
-	public static String getJobSite() {
+
+	/**
+	 * Gets jobsite and return it as a string
+	 * @return --> the jobsite represented as a string
+	 */
+	public String getJobSite() {
 		// he had +3
 		return info[equipIndex+3].split(":")[1].split("\"")[1];
 	}
@@ -192,7 +198,7 @@ public class HttpGet {
 	 * This method gets the info of the designated transaction
 	 * @return -> result[0] = tType result[1] = pdaUsername result[2] = jobsite
 	 */ 
-	public static String[] basicTransactionInfo() {
+	public String[] basicTransactionInfo() {
 		String[] allInfo = new String[3];
 		//tType + 9
 		//pdaUsername + 11
@@ -227,7 +233,11 @@ public class HttpGet {
 		return dateNums[1] + "-" + dateNums[2] + "-" + dateNums[0];
 	}
 	
-	public static boolean equipExists() {
+	/**
+	 * Returns whether the request equipment ID exists in the API response
+	 * @return --> true if the equipment ID exists, false otherwise
+	 */
+	public boolean equipExists() {
 		if(equipIndex == -1) {
 			return false;
 		}
@@ -236,8 +246,8 @@ public class HttpGet {
 		}
 	}
 
-	public static void main(String[] args) {
-		run("bulldozer");
+//	public static void main(String[] args) {
+		//		run("bulldozer");
 		//				System.out.println("Equip status: "+equipStatus());
 		//				System.out.println("Equip CMH: "+equipCMH());
 		//				System.out.println("Last transaction date: "+lastTransaction());
@@ -245,8 +255,8 @@ public class HttpGet {
 		//				equipInfo();
 		//basicTransactionInfo();
 
-//		System.out.println();
-		run("digger");
+		//		System.out.println();
+		//		run("digger");
 		//				System.out.println("Equip status: "+equipStatus());
 		//				System.out.println("Equip CMH: "+equipCMH());
 		//				System.out.println("Last transaction date: "+lastTransaction());
@@ -254,8 +264,8 @@ public class HttpGet {
 		//				equipInfo();
 		//basicTransactionInfo();
 
-//		System.out.println();
-		run("longboard");
+		//		System.out.println();
+		//		run("longboard");
 		//				System.out.println("Equip status: "+equipStatus());
 		//				System.out.println("Equip CMH: "+equipCMH());
 		//				System.out.println("Last transaction date: "+lastTransaction());
@@ -263,11 +273,11 @@ public class HttpGet {
 		//				equipInfo();
 		//basicTransactionInfo();
 
-//		System.out.println();
+		//		System.out.println();
 
 		//				System.out.println(dateChange("2018-10-30"));
 		//				System.out.println(dateChange("1997-7-20"));
 
 		//System.out.println(equipTotal());
-	}
+//	}
 }

@@ -11,14 +11,29 @@ import org.apache.commons.codec.binary.Base64;
 
 public class EquipHour {
 
+	/**
+	 * A String that will be altered and cut to find the desired information
+	 */
 	public String equipLine;
 
-	//an int that will count the total number of equipment that belongs to that company
-	public int numEquip = 0;
-
-	public String[] info;
+	/**
+	 * An integer that will count the total number of equipment that belongs to that company
+	 */
+	public int numEquip;
+	
+	/**
+	 * An index indicated the start position of the requested equipment in the response
+	 */
 	public int equipIndex;
 	
+	/**
+	 * A data structure stores each line of the return response 
+	 */
+	public String[] info;
+	
+	/**
+	 * The first and last found cumulative machine hour in the response 
+	 */
 	public String firstCMH, lastCMH;
 
 	public EquipHour() {
@@ -28,6 +43,11 @@ public class EquipHour {
 		lastCMH = null;
 	}	
 
+	/**
+	 * Calls the API Call GetHours with basic authentication and sets "equipLine" which is the string
+	 * that holds all data from the GET
+	 * @param  equip - equipment's name, date1 - startDate, date2 - endDate
+	 */
 	public void run(String equip, String date1, String date2) {
 		String path = "https://service.equipchat.com/EquipchatTransactionService.svc/GetHours/" + date1 + "/" + date2; //works but takes a very long time
 		String line = "";
@@ -92,11 +112,10 @@ public class EquipHour {
 		}
 	}
 
-	/*
-	 * Over time period
+	/**
+	 * Basic authorization set up
+	 * @return the connection url with basic authorization set up
 	 */
-
-	//Basic authentication set up
 	private URLConnection setUsernamePassword(URL url) throws IOException {
 		String username = "rtosten";
 		String password = "BTedu18";
@@ -107,6 +126,10 @@ public class EquipHour {
 		return urlConnection;
 	}
 	
+	/**
+	 * Calculate the difference between two cumulative machine hours
+	 * @return -1 if there only one record exists or the amount of machine hours found
+	 */
 	public int cmhChange() {
 		
 		if (firstCMH == null || lastCMH == null) {
@@ -120,13 +143,13 @@ public class EquipHour {
 		return result;
 	}
 
-	public static void main(String[] args) {
+//	public static void main(String[] args) {
 //		run("Bulldozer", "10-28-2018", "11-04-2018");
 //		System.out.println(cmhChange());
 //		
-		EquipHour apicall = new EquipHour();
-
-		apicall.run("bulldozer", "12-01-2018", "12-02-2018");
-		System.out.println(apicall.cmhChange());
-	}
+//		EquipHour apicall = new EquipHour();
+//
+//		apicall.run("bulldozer", "12-01-2018", "12-03-2018");
+//		System.out.println(apicall.cmhChange());
+//	}
 }

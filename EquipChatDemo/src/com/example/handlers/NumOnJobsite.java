@@ -9,28 +9,51 @@ import java.util.ArrayList;
 import org.apache.commons.codec.binary.Base64;
 
 public class NumOnJobsite {
+
+	/**
+	 * A String that will be altered and cut to find the desired information
+	 */
+	public String equipLine;
+
+	/**
+	 * An integer that will count the total number of equipment that belongs to that company
+	 */
+	public int numEquip;
 	
-	//A String that will be altered and cut to find the desired information
-		public static String equipLine;
-
-		//an int that will count the total number of equipment that belongs to that company
-		public static int numEquip = 0;
-		public static int numOnSite = 0;
-		
-		public static String stringOnSite = "";
-
-		public static String[] info;
-		public static int equipIndex;
-
-		public NumOnJobsite() {
-			equipLine = "";
-			equipIndex = -1;
-			numOnSite = 0;
-			numEquip = 0;
-			stringOnSite = "";
-		}	
+	/**
+	 * An index indicated the start position of the requested equipment in the response
+	 */
+	public int equipIndex;
 	
-	public static void run(String jobsite) {
+	/**
+	 * A data structure stores each line of the return response 
+	 */
+	public String[] info;
+	
+	/**
+	 * An integer that counts the total number of equipments on a jobsite
+	 */
+	public int numOnSite;
+
+	/**
+	 * A string representation of the total number of equipments on a jobsite
+	 */
+	public String stringOnSite;
+
+	public NumOnJobsite() {
+		equipLine = "";
+		equipIndex = -1;
+		numOnSite = 0;
+		numEquip = 0;
+		stringOnSite = "";
+	}	
+
+	/**
+	 * Calls the API Call GetEquipment with basic authentication and sets "equipLine" which is the string
+	 * that holds all data from the GET
+	 * @param jobsite - the jobsite that user wants to check
+	 */
+	public void run(String jobsite) {
 		String path = "https://service.equipchat.com/EquipchatTransactionService.svc/GetEquipment";
 		String line = "";
 		ArrayList<String> allLines = new ArrayList<String>();
@@ -63,11 +86,10 @@ public class NumOnJobsite {
 				}			
 				counter++;
 			}
-			
+
 			stringOnSite = "" + numOnSite;
-			
+
 			System.out.println();
-			//System.out.println("The number of equipment on this jobsite is: " + numOnSite);
 
 			//if counter is 0, equipment is not there. handle this
 
@@ -83,12 +105,11 @@ public class NumOnJobsite {
 		}
 	}
 
-	/*
-	 * Over time period
+	/**
+	 * Basic authorization set up
+	 * @return the connection url with basic authorization set up
 	 */
-
-	//Basic authentication set up
-	private static URLConnection setUsernamePassword(URL url) throws IOException {
+	private URLConnection setUsernamePassword(URL url) throws IOException {
 		String username = "rtosten";
 		String password = "BTedu18";
 		URLConnection urlConnection = url.openConnection();
@@ -97,12 +118,20 @@ public class NumOnJobsite {
 		urlConnection.setRequestProperty("Authorization", "Basic " + authStringEnc);
 		return urlConnection;
 	}
-	
-	public static String numOnSite() {
+
+	/**
+	 * Return the total number of equipments available on the given jobsite 
+	 * @return stringOnSite - string representation of the total number of equipments available on the given jobsite 
+	 */
+	public String numOnSite() {
 		return stringOnSite;
 	}
-	
-	public static boolean jobsiteExists() {
+
+	/**
+	 * Return if a jobsite exists on the system
+	 * @return true if the API call returns a result, false otherwise 
+	 */
+	public boolean jobsiteExists() {
 		if(equipIndex == -1) {
 			return false;
 		}
@@ -110,11 +139,11 @@ public class NumOnJobsite {
 			return true;
 		}
 	}
-	
-	public static void main(String[] args) {
-		//run("gettysburg");
-		
-		run("dickinson");
-		System.out.println(numOnSite());
-	}
+
+	//	public static void main(String[] args) {
+	//		//run("gettysburg");
+	//		
+	//		run("dickinson");
+	//		System.out.println(numOnSite());
+	//	}
 }

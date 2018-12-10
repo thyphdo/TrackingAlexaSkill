@@ -14,30 +14,35 @@ import com.amazon.ask.response.ResponseBuilder;
 
 import static com.amazon.ask.request.Predicates.intentName;
 
-//Source: https://github.com/alexa/alexa-skills-kit-sdk-for-java
 public class EquipCMHDemoHandler implements RequestHandler {
-
-	public static void main(String[] args) {
-//		HttpGet info = new HttpGet();
-//		info.run("bulldozer");
-//		String CMH = info.equipCMH();
-//		String jobSite = info.getJobSite();
-//		System.out.println(CMH + jobSite);
-//		
-//		HttpGet info2 = new HttpGet();
-//		info2.run("shortboard");
-//		String CMH2 = info2.equipCMH();
-//		String jobSite2 = info2.getJobSite();
-//		
-//		System.out.println(CMH2 + jobSite2);
-	}
 	
+	/**
+	 * Name of the slot provided by the Alexa Skill Service
+	 * equipName - equipment ID
+	 */
 	public static final String EQUIP_NAME = "equipName";
 
+	/**
+	 * Returns if the Alexa skill service's input matches with the intent this handler cover
+	 *	
+	 * @param input 
+	 * @return whether the input's intent is EquipCMHIntent 
+	 */
 	public boolean canHandle(HandlerInput input) {
 		return input.matches(intentName("EquipCMHIntent"));
 	}
 
+	/**
+	 * Build an according response based on the input request 
+	 * Correct message: Machine X has been running for Y hours
+	 * Error message: Machine X is not valid, please try again
+	 * Reprompt message: I don't think I get the equipment's name. You can ask me again by kindly saying "Tell me about the CMH of X"
+	 * 
+	 * @param input 
+	 * @return a response builder with relevant message if successful from the API call 
+	 * or a message indicating errors so the SDK sends the correct JSON object back to user.
+	 */
+	@Override
 	public Optional<Response> handle(HandlerInput input) {
 
 		Request request = input.getRequestEnvelope().getRequest();
@@ -55,6 +60,8 @@ public class EquipCMHDemoHandler implements RequestHandler {
 		if (equipNameSlot != null) {
 			// Store the equip name in the Session and create response.
 			String equipName = equipNameSlot.getValue().toLowerCase();
+			
+			//****// CALL API //****// 
 			HttpGet info = new HttpGet();
 			info.run(equipName);
 
@@ -81,8 +88,8 @@ public class EquipCMHDemoHandler implements RequestHandler {
 			speechText = 
 					"I'm not sure what the equipment's name is, please try again";
 			repromptText = 
-					"I don't think I get the equipment's name. You can ask me again by kindly asking, "
-							+ "what's the machine's information ";
+					"I don't think I get the equipment's name. You can ask me again by kindly asking something like, "
+							+ "what's longboard's information ";
 			isAskResponse = true;
 		}
 

@@ -13,23 +13,59 @@ import com.amazon.ask.model.Request;
 import com.amazon.ask.model.Response;
 import com.amazon.ask.model.Slot;
 import com.amazon.ask.response.ResponseBuilder;
-//***** Done integrate, need formatting *****//
+
 public class LastTransactionHandler implements RequestHandler{
 
+	/**
+	 * Name of the slot provided by the Alexa Skill Service
+	 * equipName - equipment ID whose the user wants to check the CMH of
+	 */
 	public static final String EQUIP_NAME = "equipName";
 	
+	/**
+	 * Information index in the response returned by API Call
+	 * 0 - the date and time of the transaction
+	 */
 	public static final int TRANSACTION_TIME = 0;
+	
+	/**
+	 * Information index in the response returned by API Call
+	 * 1 - the type of the transaction
+	 */
 	public static final int TRANSACTION_TYPE = 1;
+	
+	/**
+	 * Information index in the response returned by API Call
+	 * 2 - the user related to the transaction
+	 */
 	public static final int USER = 2;
+	
+	/**
+	 * Information index in the response returned by API Call
+	 * 3 - the location where transaction happened
+	 */
 	public static final int JOBSITE = 3;
 
-	//LastTransactionIntent
-	//Slot types: 
-	//equipName - Amazon.SearchQuery 
+	/**
+	 * Returns if the Alexa skill service's input matches with the intent this handler cover
+	 *	
+	 * @param input 
+	 * @return whether the input's intent is LastTransactionIntent 
+	 */
 	public boolean canHandle(HandlerInput input) {
 		return input.matches(intentName("LastTransactionIntent"));
 	}
 
+	/**
+	 * Build an according response based on the input request 
+	 * Correct messages: X's last transaction is type Y at jobsite Z on transDate at transTime operated by User
+	 * Incorrect messages: I'm not sure what the equipment's name is, please try again
+	 * Reprompt message: Try again by asking something like what's the last transaction of bulldozer
+	 * @Override
+	 * @param input 
+	 * @return a response builder with relevant message if successful from the API call 
+	 * or a message indicating errors so the SDK sends the correct JSON object back to user.
+	 */
 	@Override
 	public Optional<Response> handle(HandlerInput input) {
 
@@ -82,16 +118,18 @@ public class LastTransactionHandler implements RequestHandler{
 			//IF API RETURN AN ERROR
 			else {
 				speechText = 
-						"There's an error from request to the API with equipment or the equipment does not exist. please try again";
+						name + " may not exist or there isn't any trasanction of " +name +" within the past 3 months. please try again";
 			}
+			repromptText = "Anything else?";
+
 		}//IF INPUTS HAVE ERROR
 		else {
 			//if it's the time
 			speechText = "I'm not sure what the equipment's name is, please try again";
+			repromptText = "Try again by asking something like what's the last transaction of bulldozer";
+
 			isAskResponse = true;
 		}
-
-		repromptText = "Anything else?";
 
 		//Building the response
 		ResponseBuilder responseBuilder = input.getResponseBuilder();
